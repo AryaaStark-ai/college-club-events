@@ -3,19 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Aayush Dhole">
+<meta name="description" content="Full events calendar for every college club. Built by Aayush Dhole.">
 <title>Calendar — College Club Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script src="js/theme.js"></script>
 </head>
 <body>
 <header class="site-header">
   <div class="nav-wrap">
-    <a class="brand" href="index.html">College Club Hub</a>
+    <a class="brand" href="index.html"><span class="dot"></span>College Club Hub</a>
     <nav class="main-nav">
       <a href="index.html">Home</a>
       <a href="clubs.html">Clubs</a>
       <a href="calendar.html" class="active">Calendar</a>
+      <button id="theme-toggle" title="Toggle theme" aria-label="Toggle dark mode">🌙</button>
     </nav>
   </div>
 </header>
@@ -28,7 +35,10 @@
   <div id="calendar"></div>
 </main>
 
-<footer>Built by students, for students.</footer>
+<footer>
+  <div>Built by students, for students.</div>
+  <div class="credit">Designed &amp; built by <strong>Aayush Dhole</strong> &middot; &copy; 2026 &middot; All rights reserved</div>
+</footer>
 
 <script src="js/app.js"></script>
 <script src="js/calendar.js"></script>

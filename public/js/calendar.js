@@ -3,10 +3,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const clubById = Object.fromEntries(clubs.map((c) => [c.id, c]));
 
   const categoryColors = {
-    Technical: '#4f46e5',
-    Cultural: '#e11d48',
-    Sports: '#059669',
-    Arts: '#d97706'
+    Technical: '#b3123a',
+    Cultural: '#ff6b8b',
+    Sports: '#ffb020',
+    Arts: '#6b21a8'
   };
 
   function toFullCalendarEvents(list) {

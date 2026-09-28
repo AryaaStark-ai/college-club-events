@@ -1,12 +1,14 @@
 # College Club Hub
 
-A website listing all college clubs and their events on a shared calendar.
+A website listing all college clubs and their events on a shared calendar — built with a bold maroon/pink gradient theme, glassmorphism nav, dark mode, and animated cards.
+
+> Designed & built by **Aayush Dhole**. See [LICENSE.md](LICENSE.md) — all rights reserved.
 
 ## Stack
 
 - **Backend**: Node.js + Express, serving a small JSON REST API
 - **Data**: plain JSON files (`data/clubs.json`, `data/events.json`) — edit these by hand to add or update clubs and events, no login required
-- **Frontend**: plain HTML/CSS/JS, no build step, calendar rendered with [FullCalendar](https://fullcalendar.io/)
+- **Frontend**: plain HTML/CSS/JS, no build step, calendar rendered with [FullCalendar](https://fullcalendar.io/), light/dark theme toggle (saved per-browser)
 
 ## Run it
 
@@ -73,3 +75,9 @@ The event shows up automatically on the home page (if upcoming), the club's own 
 ## Deploying
 
 Any Node host works (Render, Railway, Fly.io, a college server, etc.) — just run `npm install && npm start`. No database needed.
+
+## Credits
+
+Designed and built by **Aayush Dhole**.
+
+This project is shared publicly for portfolio purposes. It is **not** open source — see [LICENSE.md](LICENSE.md) for terms before reusing any part of it.
