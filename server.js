@@ -1,6 +1,8 @@
 require('dotenv').config();
 
+const crypto = require('crypto');
 const express = require('express');
+const session = require('express-session');
 const fs = require('fs/promises');
 const path = require('path');
 const { csvToObjects } = require('./lib/csv');
@@ -8,8 +10,14 @@ const { mapFormRowToPendingEvent } = require('./lib/formMapping');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const ADMIN_KEY = process.env.ADMIN_KEY || '';
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
+const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
 const DEFAULT_SHEET_CSV_URL = process.env.SHEET_CSV_URL || '';
+
+if (!process.env.SESSION_SECRET) {
+  console.warn('No SESSION_SECRET set in .env — using a random one for this run. Admin sessions will not survive a server restart until you set one.');
+}
 
 const CLUBS_PATH = path.join(__dirname, 'data', 'clubs.json');
 const EVENTS_PATH = path.join(__dirname, 'data', 'events.json');
@@ -34,23 +42,45 @@ async function writeJson(filePath, data) {
   await fs.writeFile(filePath, JSON.stringify(data, null, 2) + '\n', 'utf-8');
 }
 
-function requireAdmin(req, res, next) {
-  if (!ADMIN_KEY) {
-    return res.status(500).json({ error: 'Server has no ADMIN_KEY configured. Set it in .env first.' });
-  }
-  const key = req.headers['x-admin-key'] || req.query.key;
-  if (key !== ADMIN_KEY) {
-    return res.status(401).json({ error: 'Invalid or missing admin key.' });
+function requireAdminSession(req, res, next) {
+  if (!req.session || !req.session.isAdmin) {
+    return res.status(401).json({ error: 'Not logged in.' });
   }
   next();
 }
 
+// Constant-time string compare so a login attempt can't be timed to guess
+// the username/password character by character.
+function safeEqual(a, b) {
+  const bufA = Buffer.from(String(a));
+  const bufB = Buffer.from(String(b));
+  if (bufA.length !== bufB.length) {
+    crypto.timingSafeEqual(bufA, bufA); // keep timing consistent either way
+    return false;
+  }
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
 app.use(express.json());
+app.set('trust proxy', 1);
+app.use(
+  session({
+    secret: SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 8 * 60 * 60 * 1000
+    }
+  })
+);
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Very small in-memory rate limit for the public submission form: resets on
-// restart and isn't shared across processes, which is fine at this scale —
-// its only job is to slow down casual spam, not stop a determined attacker.
+// Very small in-memory rate limits: reset on restart and aren't shared across
+// processes, which is fine at this scale — their only job is to slow down
+// casual spam/brute-force, not stop a determined, distributed attacker.
 const submissionTimestampsByIp = new Map();
 const SUBMIT_WINDOW_MS = 60 * 60 * 1000;
 const SUBMIT_MAX_PER_WINDOW = 5;
@@ -61,6 +91,18 @@ function isRateLimited(ip) {
   timestamps.push(now);
   submissionTimestampsByIp.set(ip, timestamps);
   return timestamps.length > SUBMIT_MAX_PER_WINDOW;
+}
+
+const loginAttemptsByIp = new Map();
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_MAX_PER_WINDOW = 8;
+
+function isLoginRateLimited(ip) {
+  const now = Date.now();
+  const timestamps = (loginAttemptsByIp.get(ip) || []).filter((t) => now - t < LOGIN_WINDOW_MS);
+  timestamps.push(now);
+  loginAttemptsByIp.set(ip, timestamps);
+  return timestamps.length > LOGIN_MAX_PER_WINDOW;
 }
 
 function clean(value, maxLen) {
@@ -179,10 +221,43 @@ app.post('/api/submit-event', async (req, res, next) => {
   }
 });
 
-// ---------- Admin API (event submission review queue) ----------
-// Protected by ADMIN_KEY (set in .env). See README for setup.
+// ---------- Admin auth ----------
+// A real login: username/password checked server-side (never sent to the
+// client), a signed httpOnly session cookie on success. See README for setup.
 
-app.get('/api/admin/pending', requireAdmin, async (req, res, next) => {
+app.post('/api/admin/login', (req, res) => {
+  if (!ADMIN_USERNAME || !ADMIN_PASSWORD) {
+    return res.status(500).json({ error: 'Server has no ADMIN_USERNAME/ADMIN_PASSWORD configured. Set them in .env first.' });
+  }
+  if (isLoginRateLimited(req.ip)) {
+    return res.status(429).json({ error: 'Too many login attempts. Try again in a few minutes.' });
+  }
+
+  const { username, password } = req.body || {};
+  const ok = username && password && safeEqual(username, ADMIN_USERNAME) && safeEqual(password, ADMIN_PASSWORD);
+  if (!ok) {
+    return res.status(401).json({ error: 'Incorrect username or password.' });
+  }
+
+  req.session.regenerate((err) => {
+    if (err) return res.status(500).json({ error: 'Could not start a session.' });
+    req.session.isAdmin = true;
+    res.json({ ok: true });
+  });
+});
+
+app.post('/api/admin/logout', (req, res) => {
+  req.session.destroy(() => res.json({ ok: true }));
+});
+
+app.get('/api/admin/session', (req, res) => {
+  res.json({ authenticated: !!(req.session && req.session.isAdmin) });
+});
+
+// ---------- Admin API (event submission review queue) ----------
+// Protected by the session cookie set on login, above.
+
+app.get('/api/admin/pending', requireAdminSession, async (req, res, next) => {
   try {
     const pending = await readJson(PENDING_PATH);
     res.json(pending);
@@ -191,7 +266,7 @@ app.get('/api/admin/pending', requireAdmin, async (req, res, next) => {
   }
 });
 
-app.post('/api/admin/sync', requireAdmin, async (req, res, next) => {
+app.post('/api/admin/sync', requireAdminSession, async (req, res, next) => {
   try {
     const csvUrl = (req.body && req.body.url) || DEFAULT_SHEET_CSV_URL;
     if (!csvUrl) {
@@ -232,7 +307,7 @@ app.post('/api/admin/sync', requireAdmin, async (req, res, next) => {
   }
 });
 
-app.post('/api/admin/pending/:id/approve', requireAdmin, async (req, res, next) => {
+app.post('/api/admin/pending/:id/approve', requireAdminSession, async (req, res, next) => {
   try {
     const [pending, events, clubs] = await Promise.all([
       readJson(PENDING_PATH),
@@ -276,7 +351,7 @@ app.post('/api/admin/pending/:id/approve', requireAdmin, async (req, res, next) 
   }
 });
 
-app.delete('/api/admin/pending/:id', requireAdmin, async (req, res, next) => {
+app.delete('/api/admin/pending/:id', requireAdminSession, async (req, res, next) => {
   try {
     const [pending, rejectedIds] = await Promise.all([
       readJson(PENDING_PATH),

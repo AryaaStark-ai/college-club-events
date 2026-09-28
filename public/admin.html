@@ -29,24 +29,43 @@
 </header>
 
 <main>
-  <div class="section-title">
-    <h2>Event submissions — review queue</h2>
+  <div id="login-view">
+    <div class="section-title">
+      <h2>Admin login</h2>
+    </div>
+    <form class="form-card" id="login-form" style="max-width: 380px;">
+      <div class="form-row">
+        <label for="login-username">Username</label>
+        <input type="text" id="login-username" name="username" autocomplete="username" required>
+      </div>
+      <div class="form-row">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" name="password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn" id="login-btn">Log in</button>
+      <p id="login-status" class="meta" style="margin-top: 12px;"></p>
+    </form>
   </div>
-  <p class="form-note">Submissions from the site's "Submit Event" form land here automatically. Use the sync button only if you're also collecting responses through a Google Form.</p>
 
-  <div class="admin-bar">
-    <input type="password" id="admin-key" placeholder="Admin key" class="admin-key-input">
-    <input type="text" id="sheet-url" placeholder="Google Sheet CSV URL (optional if set in .env)" class="sheet-url-input">
-    <button class="btn" id="sync-btn">Sync from Google Sheet</button>
-    <button class="btn btn-secondary" id="save-key-btn">Save key</button>
+  <div id="dashboard-view" style="display:none;">
+    <div class="section-title">
+      <h2>Event submissions — review queue</h2>
+      <button class="btn btn-secondary" id="logout-btn">Log out</button>
+    </div>
+    <p class="form-note">Submissions from the site's "Submit Event" form land here automatically. Use the sync button only if you're also collecting responses through a Google Form.</p>
+
+    <div class="admin-bar">
+      <input type="text" id="sheet-url" placeholder="Google Sheet CSV URL (optional if set in .env)" class="sheet-url-input">
+      <button class="btn" id="sync-btn">Sync from Google Sheet</button>
+    </div>
+    <p class="meta" id="status-line"></p>
+
+    <div id="pending-list"></div>
   </div>
-  <p class="meta" id="status-line"></p>
-
-  <div id="pending-list"></div>
 </main>
 
 <footer>
-  <div class="footer-main">Admin tools — this page is linked from the site footer, but only your admin key can actually see or approve anything here.</div>
+  <div class="footer-main">Admin tools — not linked anywhere on the public site. This page's own login is what actually protects it.</div>
   <div class="credit">Designed &amp; built by <strong>Aayush Dhole</strong> &middot; &copy; 2026 &middot; All rights reserved</div>
 </footer>
 

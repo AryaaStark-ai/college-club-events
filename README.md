@@ -16,7 +16,7 @@ A website listing all college clubs and their events on a shared calendar — th
 
 ```bash
 npm install
-cp .env.example .env   # then edit .env — set ADMIN_KEY at minimum
+cp .env.example .env   # then edit .env — set ADMIN_USERNAME, ADMIN_PASSWORD, SESSION_SECRET at minimum
 npm start
 ```
 
@@ -78,7 +78,7 @@ Field notes:
 
 **Where club leads go:** the "Submit Event" button in the nav (and footer, and the home page hero) on every page links to `/submit.html` — a real form, live on the site, no Google account or login needed. It asks for the club (or host college, if the event is from another college), the event details, and the submitter's name/email, then sends it straight into the review queue. Nothing they submit goes live until you approve it.
 
-**Where you review it:** `/admin.html` — linked from the footer of every page, but it only works once you set `ADMIN_KEY` in `.env` (see [Run it](#run-it)). Open it, enter that key, and new submissions from `/submit.html` are already sitting there waiting — no extra step needed. Each one shows an "Assign to club" dropdown (auto-matched by name when possible) — click **Approve & publish** to add it to the live calendar, or **Reject** to discard it. Rejected and approved submissions are remembered, so they never come back.
+**Where you review it:** `/admin.html` — not linked anywhere on the public site, so bookmark the URL yourself. It's a real login (not a shared link-based key): set `ADMIN_USERNAME`, `ADMIN_PASSWORD`, and `SESSION_SECRET` in `.env` (see [Run it](#run-it)), then log in with that username/password. The password is checked server-side only and a signed, `httpOnly` session cookie keeps you logged in for 8 hours — it never touches the browser's localStorage, and login attempts are rate-limited (8 per 15 minutes per IP) to slow down guessing. New submissions from `/submit.html` are already sitting there waiting — no extra step needed. Each one shows an "Assign to club" dropdown (auto-matched by name when possible) — click **Approve & publish** to add it to the live calendar, or **Reject** to discard it. Rejected and approved submissions are remembered, so they never come back.
 
 **Optional: also accept a Google Form.** If you'd rather (or additionally) collect submissions through a Google Form — e.g. to share a link outside the site — this project also supports a Google Form → Sheet → same review queue pipeline:
 
@@ -95,15 +95,28 @@ Field notes:
 - `GET /api/clubs/:id` — one club
 - `GET /api/events` — all events (`?clubId=`, `?category=`, `?month=YYYY-MM`, `?scope=campus|inter-college` to filter)
 - `GET /api/events/:id` — one event
-- `POST /api/submit-event` — public, no key needed; what `/submit.html` calls. Adds a submission to the review queue (rate-limited to 5 per IP per hour)
-- `GET /api/admin/pending` — pending submissions (requires `x-admin-key` header)
-- `POST /api/admin/sync` — pull new responses from the Google Sheet CSV (requires admin key; body `{ "url": "..." }` optional if `SHEET_CSV_URL` is set)
-- `POST /api/admin/pending/:id/approve` — publish a pending submission (requires admin key; body `{ "clubId": "..." }` optional)
-- `DELETE /api/admin/pending/:id` — reject a pending submission (requires admin key)
+- `POST /api/submit-event` — public, no login needed; what `/submit.html` calls. Adds a submission to the review queue (rate-limited to 5 per IP per hour)
+- `POST /api/admin/login` — `{ "username": "...", "password": "..." }`, sets the session cookie on success (rate-limited to 8 attempts per 15 minutes per IP)
+- `POST /api/admin/logout` — clears the session
+- `GET /api/admin/session` — `{ "authenticated": true|false }`, what the admin page checks on load
+- `GET /api/admin/pending` — pending submissions (requires an active admin session)
+- `POST /api/admin/sync` — pull new responses from the Google Sheet CSV (requires an admin session; body `{ "url": "..." }` optional if `SHEET_CSV_URL` is set)
+- `POST /api/admin/pending/:id/approve` — publish a pending submission (requires an admin session; body `{ "clubId": "..." }` optional)
+- `DELETE /api/admin/pending/:id` — reject a pending submission (requires an admin session)
 
-## Deploying
+## Deploying (Render)
 
-Any Node host works (Render, Railway, Fly.io, a college server, etc.) — just run `npm install && npm start`, and set `ADMIN_KEY` (and optionally `SHEET_CSV_URL`) as environment variables on the host. No database needed.
+This repo includes a `render.yaml` blueprint, so deploying takes a few clicks:
+
+1. Push this repo to your own GitHub account (already done if you're reading this on GitHub).
+2. Go to [render.com](https://render.com), sign up (free, no card required for the free web service tier), and click **New → Blueprint**.
+3. Connect your GitHub account and pick this repo. Render reads `render.yaml` and sets up the web service automatically.
+4. Before the first deploy finishes, fill in the environment variables it asks for: `ADMIN_USERNAME` and `ADMIN_PASSWORD` (your choice — this is what you'll log into `/admin.html` with) and optionally `SHEET_CSV_URL`. `SESSION_SECRET` is generated for you automatically.
+5. Once deployed, your site is live at `https://<your-service-name>.onrender.com`.
+
+**Storage caveat:** this app stores clubs/events/pending-submissions as JSON files on disk (no database). Render's **free** tier doesn't guarantee that disk survives a redeploy or a spin-down after 15 minutes of inactivity — so admin-approved events could reset unexpectedly. That's fine for a portfolio link or a demo. For something club leads actually rely on long-term, either add a Render **persistent disk** (paid, a few dollars/month) or migrate `data/*.json` to a real database later.
+
+Any other Node host works too (Railway, Fly.io, a college server) — just run `npm install && npm start`, and set the same environment variables from `.env.example` on that host.
 
 ## Credits
 

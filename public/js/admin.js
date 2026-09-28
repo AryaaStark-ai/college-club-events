@@ -1,41 +1,86 @@
 (function () {
-  const KEY_STORAGE = 'cch-admin-key';
   const URL_STORAGE = 'cch-sheet-url';
 
-  const keyInput = document.getElementById('admin-key');
+  const loginView = document.getElementById('login-view');
+  const dashboardView = document.getElementById('dashboard-view');
+  const loginForm = document.getElementById('login-form');
+  const loginStatus = document.getElementById('login-status');
   const urlInput = document.getElementById('sheet-url');
   const statusLine = document.getElementById('status-line');
   const listEl = document.getElementById('pending-list');
 
   try {
-    keyInput.value = localStorage.getItem(KEY_STORAGE) || '';
     urlInput.value = localStorage.getItem(URL_STORAGE) || '';
   } catch (e) {}
 
-  function adminHeaders() {
-    return { 'x-admin-key': keyInput.value, 'Content-Type': 'application/json' };
+  function showDashboard() {
+    loginView.style.display = 'none';
+    dashboardView.style.display = '';
+    loadPending();
   }
+
+  function showLogin() {
+    loginView.style.display = '';
+    dashboardView.style.display = 'none';
+  }
+
+  async function checkSession() {
+    const res = await fetch('/api/admin/session');
+    const body = await res.json().catch(() => ({ authenticated: false }));
+    if (body.authenticated) showDashboard();
+    else showLogin();
+  }
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const loginBtn = document.getElementById('login-btn');
+    loginBtn.disabled = true;
+    loginStatus.textContent = 'Logging in...';
+    loginStatus.style.color = '';
+
+    const username = document.getElementById('login-username').value;
+    const password = document.getElementById('login-password').value;
+
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        loginStatus.textContent = body.error || 'Login failed.';
+        loginStatus.style.color = '#c81e3a';
+        loginBtn.disabled = false;
+        return;
+      }
+      loginForm.reset();
+      loginStatus.textContent = '';
+      showDashboard();
+    } catch (err) {
+      loginStatus.textContent = 'Network error — please try again.';
+      loginStatus.style.color = '#c81e3a';
+    }
+    loginBtn.disabled = false;
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+    await fetch('/api/admin/logout', { method: 'POST' });
+    showLogin();
+  });
 
   function setStatus(msg, isError) {
     statusLine.textContent = msg;
     statusLine.style.color = isError ? '#c81e3a' : '';
   }
 
-  document.getElementById('save-key-btn').addEventListener('click', () => {
-    try {
-      localStorage.setItem(KEY_STORAGE, keyInput.value);
-      localStorage.setItem(URL_STORAGE, urlInput.value);
-    } catch (e) {}
-    setStatus('Saved for this browser.');
-  });
-
   async function loadPending() {
-    if (!keyInput.value) {
-      setStatus('Enter your admin key first.', true);
+    setStatus('Loading pending submissions...');
+    const res = await fetch('/api/admin/pending');
+    if (res.status === 401) {
+      showLogin();
       return;
     }
-    setStatus('Loading pending submissions...');
-    const res = await fetch('/api/admin/pending', { headers: adminHeaders() });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       setStatus(body.error || 'Could not load pending submissions.', true);
@@ -49,7 +94,7 @@
 
   async function renderPending(pending) {
     if (pending.length === 0) {
-      listEl.innerHTML = '<div class="empty-state">No pending submissions. New Google Form responses will show up here after you sync.</div>';
+      listEl.innerHTML = '<div class="empty-state">No pending submissions. New submissions from the site or a Google Form will show up here.</div>';
       return;
     }
 
@@ -96,9 +141,10 @@
         btn.disabled = true;
         const res = await fetch(`/api/admin/pending/${encodeURIComponent(id)}/approve`, {
           method: 'POST',
-          headers: adminHeaders(),
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ clubId: clubId || undefined })
         });
+        if (res.status === 401) return showLogin();
         if (res.ok) {
           item.remove();
           setStatus('Published.');
@@ -116,10 +162,8 @@
         const id = item.dataset.id;
         if (!confirm('Reject and discard this submission?')) return;
         btn.disabled = true;
-        const res = await fetch(`/api/admin/pending/${encodeURIComponent(id)}`, {
-          method: 'DELETE',
-          headers: adminHeaders()
-        });
+        const res = await fetch(`/api/admin/pending/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        if (res.status === 401) return showLogin();
         if (res.ok) {
           item.remove();
           setStatus('Rejected.');
@@ -133,16 +177,14 @@
   }
 
   document.getElementById('sync-btn').addEventListener('click', async () => {
-    if (!keyInput.value) {
-      setStatus('Enter your admin key first.', true);
-      return;
-    }
+    try { localStorage.setItem(URL_STORAGE, urlInput.value); } catch (e) {}
     setStatus('Syncing from Google Sheet...');
     const res = await fetch('/api/admin/sync', {
       method: 'POST',
-      headers: adminHeaders(),
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: urlInput.value || undefined })
     });
+    if (res.status === 401) return showLogin();
     const body = await res.json().catch(() => ({}));
     if (!res.ok) {
       setStatus(body.error || 'Sync failed.', true);
@@ -152,5 +194,5 @@
     loadPending();
   });
 
-  loadPending();
+  checkSession();
 })();
