@@ -514,31 +514,83 @@ footer .admin-link {
 }
 footer .admin-link:hover { opacity: 1; }
 
-/* ---------- Subscribe card ---------- */
-.subscribe-card {
-  max-width: none;
-  margin: 0 0 24px;
-  padding: 20px 24px;
+/* ---------- Subscribe popover ---------- */
+.subscribe-menu {
+  position: relative;
 }
 
-.subscribe-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin: 12px 0 4px;
+.subscribe-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  padding: 8px 14px;
+}
+.subscribe-trigger .caret {
+  font-size: 0.7rem;
+  transition: transform 0.15s ease;
+}
+.subscribe-trigger[aria-expanded="true"] .caret {
+  transform: rotate(180deg);
 }
 
-.subscribe-instructions {
-  margin-top: 12px;
-  font-size: 0.86rem;
+.subscribe-popover {
+  /* position: fixed; top/left are set in JS, relative to the trigger's
+     actual on-screen position and clamped to the viewport — deliberately
+     not CSS-anchored to its parent, since that parent can wrap/shrink at
+     narrow widths and drag an edge-anchored popover off-screen with it. */
+  position: fixed;
+  width: 280px;
+  max-width: calc(100vw - 16px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  padding: 14px;
+  z-index: 30;
+  text-align: left;
+}
+
+.subscribe-popover[hidden] { display: none; }
+
+.popover-title {
+  margin: 0 0 10px;
+  font-size: 0.82rem;
   color: var(--text-muted);
 }
-.subscribe-instructions summary {
-  cursor: pointer;
+
+.popover-link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: var(--primary);
+  color: var(--text);
+  font-family: var(--font);
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
-.subscribe-instructions p { margin: 8px 0 0; }
+.popover-link:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.popover-hint {
+  margin: 6px 0 0;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+@media (max-width: 640px) {
+  .section-title { flex-wrap: wrap; gap: 10px; }
+}
 
 .add-to-gcal {
   font-size: 0.72rem;

@@ -26,6 +26,42 @@ function wireSubscribeLinks() {
       }
     });
   }
+
+  const trigger = document.getElementById('subscribe-trigger');
+  const popover = document.getElementById('subscribe-popover');
+  if (trigger && popover) {
+    function positionPopover() {
+      const rect = trigger.getBoundingClientRect();
+      const popWidth = popover.offsetWidth || 280;
+      const margin = 8;
+      let left = rect.right - popWidth;
+      left = Math.max(margin, Math.min(left, window.innerWidth - popWidth - margin));
+      popover.style.left = `${left}px`;
+      popover.style.top = `${rect.bottom + margin}px`;
+    }
+    function openPopover() {
+      popover.hidden = false;
+      trigger.setAttribute('aria-expanded', 'true');
+      positionPopover();
+    }
+    function closePopover() {
+      popover.hidden = true;
+      trigger.setAttribute('aria-expanded', 'false');
+    }
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (popover.hidden) openPopover(); else closePopover();
+    });
+    document.addEventListener('click', (e) => {
+      if (!popover.hidden && !popover.contains(e.target) && e.target !== trigger) closePopover();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closePopover();
+    });
+    window.addEventListener('resize', () => {
+      if (!popover.hidden) positionPopover();
+    });
+  }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
