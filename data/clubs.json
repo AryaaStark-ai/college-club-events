@@ -1,0 +1,57 @@
+[
+  {
+    "id": "coding-club",
+    "name": "Coding Club",
+    "category": "Technical",
+    "tagline": "Build, ship, repeat.",
+    "description": "A community for students who love programming — weekly problem-solving sessions, hackathons, and open-source sprints.",
+    "logo": "img/clubs/coding-club.png",
+    "contactEmail": "codingclub@college.edu",
+    "instagram": "https://instagram.com/codingclub",
+    "meetingTime": "Wednesdays, 6:00 PM, CS Lab 2"
+  },
+  {
+    "id": "drama-society",
+    "name": "Drama Society",
+    "category": "Cultural",
+    "tagline": "All the campus is a stage.",
+    "description": "Stage plays, street theatre, and improv nights. No experience needed — just enthusiasm.",
+    "logo": "img/clubs/drama-society.png",
+    "contactEmail": "drama@college.edu",
+    "instagram": "https://instagram.com/dramasociety",
+    "meetingTime": "Fridays, 5:00 PM, Auditorium"
+  },
+  {
+    "id": "sports-club",
+    "name": "Sports Club",
+    "category": "Sports",
+    "tagline": "Play hard, play fair.",
+    "description": "Organizes intramural tournaments in cricket, basketball, and badminton throughout the year.",
+    "logo": "img/clubs/sports-club.png",
+    "contactEmail": "sports@college.edu",
+    "instagram": "https://instagram.com/sportsclub",
+    "meetingTime": "Daily practice, 6:30 AM, Sports Ground"
+  },
+  {
+    "id": "photography-club",
+    "name": "Photography Club",
+    "category": "Arts",
+    "tagline": "See the campus differently.",
+    "description": "Photo walks, editing workshops, and an annual exhibition of student work.",
+    "logo": "img/clubs/photography-club.png",
+    "contactEmail": "photography@college.edu",
+    "instagram": "https://instagram.com/photoclub",
+    "meetingTime": "Alternate Saturdays, 4:00 PM, Media Room"
+  },
+  {
+    "id": "entrepreneurship-cell",
+    "name": "Entrepreneurship Cell",
+    "category": "Technical",
+    "tagline": "From idea to startup.",
+    "description": "Pitch nights, founder talks, and mentorship for student startups.",
+    "logo": "img/clubs/e-cell.png",
+    "contactEmail": "ecell@college.edu",
+    "instagram": "https://instagram.com/ecell",
+    "meetingTime": "Tuesdays, 7:00 PM, Seminar Hall"
+  }
+]
