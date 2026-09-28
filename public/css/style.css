@@ -383,6 +383,24 @@ main {
 }
 
 /* ---------- Event list ---------- */
+/* A single full-width row per event reads fine on mobile, but on a wide
+   desktop screen it's a skinny strip of text with a lot of empty space
+   to its right. Above 700px, lay events out as a multi-column grid instead
+   — same card, just using the width it actually has. */
+.event-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 700px) {
+  .event-grid {
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  }
+}
+
+.event-grid .event-item { margin-bottom: 0; }
+
 .event-item {
   background: var(--surface);
   border: 1px solid var(--border);
