@@ -11,6 +11,7 @@ A website listing all college clubs and their events on a shared calendar — th
 - **Frontend**: plain HTML/CSS/JS, no build step, calendar rendered with [FullCalendar](https://fullcalendar.io/), light/dark theme toggle (saved per-browser)
 - **Categories are color-coded** everywhere (club badges, event tiles, calendar) — Technical maroon, Cultural gold, Sports green, Arts teal, and inter-college events always purple, regardless of category
 - **Event submissions**: a `/submit.html` form on the site itself lets any club lead submit an event with no login — see [Letting club leads submit events](#letting-club-leads-submit-events)
+- **Calendar sync**: `/calendar.ics` is a standard iCalendar feed anyone can subscribe to from Google Calendar, Apple Calendar, or Outlook — see [Syncing with Google/Apple/Outlook calendars](#syncing-with-googleapleoutlook-calendars)
 
 ## Run it
 
@@ -89,12 +90,29 @@ Field notes:
 4. Paste that link into `.env` as `SHEET_CSV_URL`, or into the "Google Sheet CSV URL" field on `/admin.html`.
 5. On `/admin.html`, click **Sync from Google Sheet** whenever you want to pull in new responses — they land in the same review queue as `/submit.html` submissions.
 
+## Syncing with Google/Apple/Outlook calendars
+
+`/calendar.ics` serves the events calendar as a standard iCalendar feed. This is a **subscription**, not a one-time export: once someone adds it, their calendar app periodically re-fetches the feed on its own (usually every few hours, depending on the app), so new and updated events keep showing up automatically — no manual re-import.
+
+**For visitors:** the calendar page has an "Add to my calendar app" button and a copyable link, with instructions for Google Calendar, Apple Calendar, and Outlook. Each club's own page also has a "Subscribe to just this club's events" link, if someone only cares about one club.
+
+**Filtering the feed** — same query params as `/api/events`:
+- `/calendar.ics` — everything
+- `/calendar.ics?clubId=coding-club` — one club only
+- `/calendar.ics?category=Technical` — one category only
+- `/calendar.ics?scope=campus` or `?scope=inter-college` — one scope only
+
+**Per-event quick-add:** every event card also has an "Add to Google Calendar" link that creates just that one event (Google's own quick-add URL scheme) — useful for someone who wants one event without subscribing to the whole feed.
+
+**The other direction** (pulling events *from* a club's own Google Calendar *into* this site) isn't built — the closest equivalent is the Google Form/Sheet path above. If a club already keeps their events in a public Google Calendar, ask, and that could be added as another sync source into the same admin review queue.
+
 ## API
 
 - `GET /api/clubs` — all clubs (`?category=Technical` to filter)
 - `GET /api/clubs/:id` — one club
 - `GET /api/events` — all events (`?clubId=`, `?category=`, `?month=YYYY-MM`, `?scope=campus|inter-college` to filter)
 - `GET /api/events/:id` — one event
+- `GET /calendar.ics` — the same events as a subscribable iCalendar feed (`?clubId=`, `?category=`, `?scope=` to filter)
 - `POST /api/submit-event` — public, no login needed; what `/submit.html` calls. Adds a submission to the review queue (rate-limited to 5 per IP per hour)
 - `POST /api/admin/login` — `{ "username": "...", "password": "..." }`, sets the session cookie on success (rate-limited to 8 attempts per 15 minutes per IP)
 - `POST /api/admin/logout` — clears the session

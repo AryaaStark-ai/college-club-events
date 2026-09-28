@@ -36,6 +36,22 @@
   <div class="section-title">
     <h2>Events Calendar</h2>
   </div>
+
+  <div class="form-card subscribe-card">
+    <h3 style="margin-top:0;">📅 Subscribe from your own calendar</h3>
+    <p class="meta">Add this feed once in Google Calendar, Apple Calendar, or Outlook and every new or updated event shows up automatically — no need to check back.</p>
+    <div class="subscribe-actions">
+      <a class="btn" id="webcal-link" href="#">Add to my calendar app</a>
+      <button class="btn btn-secondary" id="copy-ics-btn" type="button">Copy feed link</button>
+    </div>
+    <details class="subscribe-instructions">
+      <summary>Instructions per app</summary>
+      <p><strong>Google Calendar (desktop):</strong> Other calendars → <strong>+</strong> → "From URL" → paste the copied link → Add calendar.</p>
+      <p><strong>Apple Calendar:</strong> File → New Calendar Subscription → paste the link → Subscribe. Or just tap "Add to my calendar app" on an iPhone/Mac.</p>
+      <p><strong>Outlook:</strong> Add calendar → Subscribe from web → paste the link.</p>
+    </details>
+  </div>
+
   <div class="legend" id="category-legend"></div>
   <div class="filters" id="category-filters"></div>
   <div class="filters" id="scope-filters"></div>

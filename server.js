@@ -7,6 +7,7 @@ const fs = require('fs/promises');
 const path = require('path');
 const { csvToObjects } = require('./lib/csv');
 const { mapFormRowToPendingEvent } = require('./lib/formMapping');
+const { buildCalendar } = require('./lib/ics');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -156,6 +157,32 @@ app.get('/api/events/:id', async (req, res, next) => {
     const event = events.find((e) => e.id === req.params.id);
     if (!event) return res.status(404).json({ error: 'Event not found' });
     res.json(event);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// A subscribable calendar feed — Google Calendar / Apple Calendar / Outlook
+// can all add this by URL and will periodically re-fetch it for updates.
+// Supports the same filters as /api/events so a club or category can get
+// its own feed, e.g. /calendar.ics?clubId=coding-club
+app.get('/calendar.ics', async (req, res, next) => {
+  try {
+    const [events, clubs] = await Promise.all([readJson(EVENTS_PATH), readJson(CLUBS_PATH)]);
+    const { clubId, category, scope } = req.query;
+    let filtered = events;
+    if (clubId) filtered = filtered.filter((e) => e.clubId === clubId);
+    if (category) filtered = filtered.filter((e) => e.category.toLowerCase() === String(category).toLowerCase());
+    if (scope) filtered = filtered.filter((e) => (e.scope || 'campus') === scope);
+
+    const clubById = Object.fromEntries(clubs.map((c) => [c.id, c]));
+    const club = clubId ? clubById[clubId] : null;
+    const calendarName = club ? `${club.name} — College Club Hub` : 'College Club Hub';
+    const hostOrigin = `${req.protocol}://${req.get('host')}`;
+
+    const ics = buildCalendar(filtered, clubById, { calendarName, hostOrigin });
+    res.set('Content-Type', 'text/calendar; charset=utf-8');
+    res.send(ics);
   } catch (err) {
     next(err);
   }

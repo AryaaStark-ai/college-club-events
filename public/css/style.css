@@ -514,6 +514,45 @@ footer .admin-link {
 }
 footer .admin-link:hover { opacity: 1; }
 
+/* ---------- Subscribe card ---------- */
+.subscribe-card {
+  max-width: none;
+  margin: 0 0 24px;
+  padding: 20px 24px;
+}
+
+.subscribe-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 12px 0 4px;
+}
+
+.subscribe-instructions {
+  margin-top: 12px;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+.subscribe-instructions summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--primary);
+}
+.subscribe-instructions p { margin: 8px 0 0; }
+
+.add-to-gcal {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.add-to-gcal:hover { color: var(--primary); border-color: var(--primary); text-decoration: none; }
+
 /* ---------- Calendar ---------- */
 #calendar {
   background: var(--surface);

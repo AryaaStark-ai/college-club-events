@@ -5,11 +5,35 @@ function renderLegend() {
   el.innerHTML = items.map((i) => `<span><span class="dot" style="background:${i.color};"></span>${i.label}</span>`).join('');
 }
 
+function wireSubscribeLinks() {
+  const icsPath = '/calendar.ics';
+  const httpsUrl = `${window.location.origin}${icsPath}`;
+  const webcalUrl = `webcal://${window.location.host}${icsPath}`;
+
+  const webcalLink = document.getElementById('webcal-link');
+  if (webcalLink) webcalLink.href = webcalUrl;
+
+  const copyBtn = document.getElementById('copy-ics-btn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(httpsUrl);
+        const original = copyBtn.textContent;
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = original; }, 1800);
+      } catch (e) {
+        prompt('Copy this link:', httpsUrl);
+      }
+    });
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   const [events, clubs] = await Promise.all([fetchJson('/api/events'), fetchJson('/api/clubs')]);
   const clubById = Object.fromEntries(clubs.map((c) => [c.id, c]));
 
   renderLegend();
+  wireSubscribeLinks();
 
   let activeCategory = '';
   let activeScope = '';

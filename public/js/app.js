@@ -35,6 +35,42 @@ function formatTime(t) {
   return `${hour}:${String(m).padStart(2, '0')} ${period}`;
 }
 
+// Pure calendar-date math avoiding the browser's local timezone entirely —
+// mixing local Date methods with UTC output rolls the date back a day for
+// any timezone ahead of UTC (like IST). Mirrors lib/ics.js on the server.
+function addOneDayStamp(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  date.setUTCDate(date.getUTCDate() + 1);
+  const yyyy = date.getUTCFullYear();
+  const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const dd = String(date.getUTCDate()).padStart(2, '0');
+  return `${yyyy}${mm}${dd}`;
+}
+
+function googleCalendarUrl(event, organizerName) {
+  const title = event.title + (event.dateConfirmed === false ? ' (tentative)' : '');
+  let dates;
+  if (event.startTime) {
+    const day = event.date.replace(/-/g, '');
+    const endTime = event.endTime && event.endTime !== event.startTime ? event.endTime : event.startTime;
+    dates = `${day}T${event.startTime.replace(':', '')}00/${day}T${endTime.replace(':', '')}00`;
+  } else {
+    const day = event.date.replace(/-/g, '');
+    dates = `${day}/${addOneDayStamp(event.date)}`;
+  }
+  const details = [event.description || '', organizerName ? `Organized by: ${organizerName}` : ''].filter(Boolean).join('\n\n');
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: title,
+    dates,
+    details,
+    location: event.location || '',
+    ctz: 'Asia/Kolkata'
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
 function clubCardHtml(club) {
   return `
     <a class="card" href="club.html?id=${encodeURIComponent(club.id)}" style="text-decoration:none; border-top-color: ${categoryColor(club.category)};">
@@ -67,6 +103,7 @@ function eventItemHtml(event, club) {
         <p>${organizerName}${event.startTime ? ' &middot; ' + formatTime(event.startTime) + (event.endTime ? ' - ' + formatTime(event.endTime) : '') : ''}${event.location ? ' &middot; ' + event.location : ''}</p>
         <div class="badge-row">${badges.join('')}</div>
         <p>${event.description || ''}</p>
+        <a class="add-to-gcal" href="${googleCalendarUrl(event, organizerName)}" target="_blank" rel="noopener">📅 Add to Google Calendar</a>
       </div>
     </div>`;
 }
@@ -162,6 +199,7 @@ async function loadClubDetail() {
         <p>
           ${club.contactEmail ? `<a class="btn" href="mailto:${club.contactEmail}">Contact</a>` : ''}
           ${club.instagram ? ` &nbsp; <a href="${club.instagram}" target="_blank" rel="noopener">Instagram &rarr;</a>` : ''}
+          &nbsp; <a href="/calendar.ics?clubId=${encodeURIComponent(club.id)}">📅 Subscribe to just this club's events</a>
         </p>
       </div>`;
 
