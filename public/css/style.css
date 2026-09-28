@@ -107,6 +107,26 @@ header.site-header {
   box-shadow: 0 0 0 4px var(--gradient-soft);
 }
 
+.college-logo {
+  width: 60px;
+  height: 32px;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+.college-logo img {
+  height: 32px;
+  width: auto;
+  max-width: none;
+  object-fit: cover;
+  object-position: left center;
+  display: block;
+}
+
 nav.main-nav {
   display: flex;
   align-items: center;
@@ -304,6 +324,28 @@ main {
 .card p.tagline { color: var(--text-muted); margin: 0; font-size: 0.92rem; }
 .card .meta { color: var(--text-muted); font-size: 0.83rem; }
 
+.badge.badge-outline {
+  background: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+}
+
+.badge.badge-tentative {
+  background: var(--accent-2);
+  color: #3a2400;
+}
+
+.badge.badge-intercollege {
+  background: #6b21a8;
+  color: #fff;
+}
+
+.badge-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 /* ---------- Filters ---------- */
 .filters {
   display: flex;
@@ -367,8 +409,19 @@ main {
 .event-date .day { font-size: 1.4rem; display: block; line-height: 1; }
 .event-date .month { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; }
 
+.event-date.tentative {
+  background: var(--surface-alt);
+  color: var(--accent-2);
+  border: 2px dashed var(--accent-2);
+}
+
+.event-item.intercollege {
+  border-left: 4px solid #6b21a8;
+}
+
 .event-body h3 { margin: 0 0 4px; font-weight: 700; }
 .event-body p { margin: 4px 0; color: var(--text-muted); font-size: 0.92rem; }
+.event-body .badge-row { margin: 6px 0 2px; }
 
 /* ---------- Club detail ---------- */
 .club-detail {
@@ -467,6 +520,76 @@ footer .credit strong {
 .fc .fc-button { border-radius: 999px !important; font-weight: 600; text-transform: capitalize; }
 .fc-event { cursor: pointer; border: none !important; }
 .fc-daygrid-event { border-radius: 6px; }
+.fc-event.tentative-event { opacity: 0.7; background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.25) 0 4px, transparent 4px 8px); }
+.fc-event.intercollege-event { font-style: italic; }
+
+/* ---------- Admin page ---------- */
+.admin-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+input[type="text"],
+input[type="password"],
+select {
+  font-family: var(--font);
+  font-size: 0.9rem;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.btn.btn-secondary {
+  background: var(--surface);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  box-shadow: none;
+}
+.btn.btn-secondary:hover {
+  background: var(--gradient-soft);
+  box-shadow: none;
+  transform: none;
+}
+
+.btn.btn-danger {
+  background: transparent;
+  color: #c81e3a;
+  border: 1px solid #c81e3a;
+  box-shadow: none;
+}
+
+.pending-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+
+.pending-item .fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px 16px;
+  margin: 12px 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.pending-item .fields strong { color: var(--text); }
+
+.pending-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
 
 @media (max-width: 640px) {
   .nav-wrap { flex-wrap: wrap; }

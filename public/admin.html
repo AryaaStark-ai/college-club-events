@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="author" content="Aayush Dhole">
-<meta name="description" content="All student clubs on campus, browsable by category. Built by Aayush Dhole.">
-<title>Clubs — College Club Hub</title>
+<meta name="robots" content="noindex, nofollow">
+<title>Admin — College Club Hub</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -21,7 +20,7 @@
     </a>
     <nav class="main-nav">
       <a href="index.html">Home</a>
-      <a href="clubs.html" class="active">Clubs</a>
+      <a href="clubs.html">Clubs</a>
       <a href="calendar.html">Calendar</a>
       <button id="theme-toggle" title="Toggle theme" aria-label="Toggle dark mode">🌙</button>
     </nav>
@@ -30,20 +29,26 @@
 
 <main>
   <div class="section-title">
-    <h2>All Clubs</h2>
+    <h2>Event submissions — review queue</h2>
   </div>
-  <div class="filters" id="category-filters"></div>
-  <div id="club-grid" class="grid"></div>
+
+  <div class="admin-bar">
+    <input type="password" id="admin-key" placeholder="Admin key" style="min-width: 220px;">
+    <input type="text" id="sheet-url" placeholder="Google Sheet CSV URL (optional if set in .env)" style="min-width: 320px; flex: 1;">
+    <button class="btn" id="sync-btn">Sync from Google Sheet</button>
+    <button class="btn btn-secondary" id="save-key-btn">Save key</button>
+  </div>
+  <p class="meta" id="status-line"></p>
+
+  <div id="pending-list"></div>
 </main>
 
 <footer>
-  <div>Built by students, for students. &middot; <a href="#" data-submit-event-link>Club lead? Submit an event</a></div>
+  <div>Admin tools — not linked from the public site.</div>
   <div class="credit">Designed &amp; built by <strong>Aayush Dhole</strong> &middot; &copy; 2026 &middot; All rights reserved</div>
 </footer>
 
 <script src="js/app.js"></script>
-<script>
-  loadClubsPage();
-</script>
+<script src="js/admin.js"></script>
 </body>
 </html>

@@ -1,5 +1,23 @@
 const CATEGORY_LIST = ['Technical', 'Cultural', 'Sports', 'Arts'];
 
+// Paste your published Google Form link here once you've created it
+// (see README.md "Letting club leads submit events"). Leave blank to hide
+// the "Submit an event" button site-wide.
+const SUBMIT_FORM_URL = '';
+
+function wireSubmitEventLinks() {
+  document.querySelectorAll('[data-submit-event-link]').forEach((el) => {
+    if (SUBMIT_FORM_URL) {
+      el.href = SUBMIT_FORM_URL;
+      el.target = '_blank';
+      el.rel = 'noopener';
+    } else {
+      el.style.display = 'none';
+    }
+  });
+}
+document.addEventListener('DOMContentLoaded', wireSubmitEventLinks);
+
 async function fetchJson(url) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Request failed: ${url}`);
@@ -33,12 +51,23 @@ function clubCardHtml(club) {
 
 function eventItemHtml(event, club) {
   const { day, month } = formatDate(event.date);
+  const isTentative = event.dateConfirmed === false;
+  const isInterCollege = event.scope === 'inter-college';
+  const organizerName = isInterCollege
+    ? (event.hostCollege || event.clubName || 'Partner college')
+    : (club ? club.name : event.clubName || '');
+
+  const badges = [];
+  if (isTentative) badges.push('<span class="badge badge-tentative">Date tentative</span>');
+  if (isInterCollege) badges.push('<span class="badge badge-intercollege">🎓 Inter-college</span>');
+
   return `
-    <div class="event-item">
-      <div class="event-date"><span class="day">${day}</span><span class="month">${month}</span></div>
+    <div class="event-item${isInterCollege ? ' intercollege' : ''}">
+      <div class="event-date${isTentative ? ' tentative' : ''}"><span class="day">${isTentative ? '~' : day}</span><span class="month">${month}</span></div>
       <div class="event-body">
         <h3>${event.title}</h3>
-        <p>${club ? club.name : ''} &middot; ${formatTime(event.startTime)}${event.endTime ? ' - ' + formatTime(event.endTime) : ''} &middot; ${event.location}</p>
+        <p>${organizerName}${event.startTime ? ' &middot; ' + formatTime(event.startTime) + (event.endTime ? ' - ' + formatTime(event.endTime) : '') : ''}${event.location ? ' &middot; ' + event.location : ''}</p>
+        ${badges.length ? `<div class="badge-row">${badges.join('')}</div>` : ''}
         <p>${event.description || ''}</p>
       </div>
     </div>`;
@@ -50,7 +79,7 @@ async function loadUpcomingEvents(selector, limit) {
   const clubById = Object.fromEntries(clubs.map((c) => [c.id, c]));
   const today = new Date().toISOString().slice(0, 10);
   const upcoming = events
-    .filter((e) => e.date >= today)
+    .filter((e) => e.date >= today && (e.scope || 'campus') !== 'inter-college')
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, limit);
 
@@ -59,6 +88,22 @@ async function loadUpcomingEvents(selector, limit) {
     return;
   }
   container.innerHTML = upcoming.map((e) => eventItemHtml(e, clubById[e.clubId])).join('');
+}
+
+async function loadIntercollegeEvents(selector, limit) {
+  const container = document.querySelector(selector);
+  const events = await fetchJson('/api/events?scope=inter-college');
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = events
+    .filter((e) => e.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, limit);
+
+  if (upcoming.length === 0) {
+    container.innerHTML = '<div class="empty-state">No announcements from other colleges right now.</div>';
+    return;
+  }
+  container.innerHTML = upcoming.map((e) => eventItemHtml(e, null)).join('');
 }
 
 async function loadClubs(selector, limit) {

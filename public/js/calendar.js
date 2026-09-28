@@ -9,16 +9,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     Arts: '#6b21a8'
   };
 
+  let activeCategory = '';
+  let activeScope = '';
+
+  function applyFilters() {
+    return events.filter((e) => {
+      if (activeCategory && e.category !== activeCategory) return false;
+      if (activeScope && (e.scope || 'campus') !== activeScope) return false;
+      return true;
+    });
+  }
+
   function toFullCalendarEvents(list) {
-    return list.map((e) => ({
-      id: e.id,
-      title: e.title,
-      start: e.endTime && e.endTime !== e.startTime ? `${e.date}T${e.startTime}` : e.date,
-      end: e.endTime && e.endTime !== e.startTime ? `${e.date}T${e.endTime}` : undefined,
-      allDay: !e.startTime,
-      color: categoryColors[e.category] || '#4f46e5',
-      extendedProps: e
-    }));
+    return list.map((e) => {
+      const isTentative = e.dateConfirmed === false;
+      const isInterCollege = e.scope === 'inter-college';
+      const classNames = [];
+      if (isTentative) classNames.push('tentative-event');
+      if (isInterCollege) classNames.push('intercollege-event');
+      return {
+        id: e.id,
+        title: `${isInterCollege ? '🎓 ' : ''}${e.title}${isTentative ? ' (tentative)' : ''}`,
+        start: e.endTime && e.endTime !== e.startTime ? `${e.date}T${e.startTime}` : e.date,
+        end: e.endTime && e.endTime !== e.startTime ? `${e.date}T${e.endTime}` : undefined,
+        allDay: !e.startTime,
+        color: isInterCollege ? '#6b21a8' : (categoryColors[e.category] || '#b3123a'),
+        classNames,
+        extendedProps: e
+      };
+    });
   }
 
   const calendarEl = document.getElementById('calendar');
@@ -30,16 +49,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     eventClick(info) {
       const e = info.event.extendedProps;
       const club = clubById[e.clubId];
+      const organizer = e.scope === 'inter-college' ? (e.hostCollege || 'Partner college') : (club ? club.name : '');
       alert(
-        `${info.event.title}\n` +
-        `${club ? club.name : ''}\n` +
-        `${e.date} ${e.startTime ? formatTime(e.startTime) : ''}\n` +
+        `${e.title}\n` +
+        `${organizer}\n` +
+        `${e.date}${e.dateConfirmed === false ? ' (date not yet confirmed)' : ''} ${e.startTime ? formatTime(e.startTime) : ''}\n` +
         `${e.location || ''}\n\n` +
         `${e.description || ''}`
       );
     }
   });
   calendar.render();
+
+  function refresh() {
+    calendar.removeAllEvents();
+    calendar.addEventSource(toFullCalendarEvents(applyFilters()));
+  }
 
   const filterBar = document.querySelector('#category-filters');
   const categories = ['All', ...CATEGORY_LIST];
@@ -51,9 +76,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.target.tagName !== 'BUTTON') return;
     filterBar.querySelectorAll('button').forEach((b) => b.classList.remove('active'));
     e.target.classList.add('active');
-    const cat = e.target.dataset.cat;
-    const filtered = cat ? events.filter((ev) => ev.category === cat) : events;
-    calendar.removeAllEvents();
-    calendar.addEventSource(toFullCalendarEvents(filtered));
+    activeCategory = e.target.dataset.cat;
+    refresh();
   });
+
+  const scopeBar = document.querySelector('#scope-filters');
+  if (scopeBar) {
+    const scopes = [
+      { label: 'All events', value: '' },
+      { label: 'This campus', value: 'campus' },
+      { label: '🎓 Inter-college', value: 'inter-college' }
+    ];
+    scopeBar.innerHTML = scopes
+      .map((s, i) => `<button data-scope="${s.value}" class="${i === 0 ? 'active' : ''}">${s.label}</button>`)
+      .join('');
+
+    scopeBar.addEventListener('click', (e) => {
+      if (e.target.tagName !== 'BUTTON') return;
+      scopeBar.querySelectorAll('button').forEach((b) => b.classList.remove('active'));
+      e.target.classList.add('active');
+      activeScope = e.target.dataset.scope;
+      refresh();
+    });
+  }
 });

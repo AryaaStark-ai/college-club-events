@@ -5,10 +5,12 @@
     "title": "24-Hour Hackathon",
     "description": "Build a working prototype in 24 hours. Teams of up to 4. Prizes for top 3 projects.",
     "date": "2026-10-04",
+    "dateConfirmed": true,
     "startTime": "09:00",
     "endTime": "09:00",
     "location": "CS Building, Lab 1-3",
-    "category": "Technical"
+    "category": "Technical",
+    "scope": "campus"
   },
   {
     "id": "evt-2",
@@ -16,10 +18,12 @@
     "title": "Annual Stage Play: \"Echoes\"",
     "description": "This year's original production, written and performed entirely by students.",
     "date": "2026-10-10",
+    "dateConfirmed": true,
     "startTime": "18:30",
     "endTime": "20:30",
     "location": "Main Auditorium",
-    "category": "Cultural"
+    "category": "Cultural",
+    "scope": "campus"
   },
   {
     "id": "evt-3",
@@ -27,10 +31,12 @@
     "title": "Inter-Department Cricket Finals",
     "description": "The final match of this semester's inter-department cricket tournament.",
     "date": "2026-10-05",
+    "dateConfirmed": true,
     "startTime": "07:00",
     "endTime": "11:00",
     "location": "Sports Ground",
-    "category": "Sports"
+    "category": "Sports",
+    "scope": "campus"
   },
   {
     "id": "evt-4",
@@ -38,10 +44,12 @@
     "title": "Golden Hour Photo Walk",
     "description": "A guided walk around campus shooting golden-hour light. Bring any camera, including phones.",
     "date": "2026-10-02",
+    "dateConfirmed": true,
     "startTime": "17:30",
     "endTime": "19:00",
     "location": "Meet at Main Gate",
-    "category": "Arts"
+    "category": "Arts",
+    "scope": "campus"
   },
   {
     "id": "evt-5",
@@ -49,10 +57,12 @@
     "title": "Founder Talk: Building in Public",
     "description": "A campus alum turned startup founder shares lessons from three years of building.",
     "date": "2026-10-07",
+    "dateConfirmed": true,
     "startTime": "19:00",
     "endTime": "20:00",
     "location": "Seminar Hall",
-    "category": "Technical"
+    "category": "Technical",
+    "scope": "campus"
   },
   {
     "id": "evt-6",
@@ -60,9 +70,38 @@
     "title": "Intro to Git & GitHub Workshop",
     "description": "A beginner-friendly workshop for first-years who've never used version control.",
     "date": "2026-10-15",
+    "dateConfirmed": true,
     "startTime": "16:00",
     "endTime": "17:30",
     "location": "CS Lab 2",
-    "category": "Technical"
+    "category": "Technical",
+    "scope": "campus"
+  },
+  {
+    "id": "evt-7",
+    "clubId": "drama-society",
+    "title": "Winter Cultural Fest Showcase",
+    "description": "A joint showcase night — exact date is still being finalized with the auditorium booking. Follow the club's Instagram for updates.",
+    "date": "2026-11-20",
+    "dateConfirmed": false,
+    "startTime": "",
+    "endTime": "",
+    "location": "Main Auditorium (tentative)",
+    "category": "Cultural",
+    "scope": "campus"
+  },
+  {
+    "id": "evt-8",
+    "clubId": null,
+    "title": "Inter-College Coding Championship",
+    "description": "An invite from PICT Coding Club — students from partner colleges compete in a day-long competitive programming contest. Open to all branches.",
+    "date": "2026-10-18",
+    "dateConfirmed": true,
+    "startTime": "10:00",
+    "endTime": "17:00",
+    "location": "PICT Campus, Pune",
+    "category": "Technical",
+    "scope": "inter-college",
+    "hostCollege": "Pune Institute of Computer Technology"
   }
 ]
