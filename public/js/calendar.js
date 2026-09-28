@@ -1,13 +1,15 @@
+function renderLegend() {
+  const el = document.querySelector('#category-legend');
+  if (!el) return;
+  const items = [...CATEGORY_LIST.map((c) => ({ label: c, color: categoryColor(c) })), { label: 'Inter-college', color: INTERCOLLEGE_COLOR }];
+  el.innerHTML = items.map((i) => `<span><span class="dot" style="background:${i.color};"></span>${i.label}</span>`).join('');
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   const [events, clubs] = await Promise.all([fetchJson('/api/events'), fetchJson('/api/clubs')]);
   const clubById = Object.fromEntries(clubs.map((c) => [c.id, c]));
 
-  const categoryColors = {
-    Technical: '#b3123a',
-    Cultural: '#ff6b8b',
-    Sports: '#ffb020',
-    Arts: '#6b21a8'
-  };
+  renderLegend();
 
   let activeCategory = '';
   let activeScope = '';
@@ -33,7 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         start: e.endTime && e.endTime !== e.startTime ? `${e.date}T${e.startTime}` : e.date,
         end: e.endTime && e.endTime !== e.startTime ? `${e.date}T${e.endTime}` : undefined,
         allDay: !e.startTime,
-        color: isInterCollege ? '#6b21a8' : (categoryColors[e.category] || '#b3123a'),
+        color: isInterCollege ? INTERCOLLEGE_COLOR : categoryColor(e.category),
         classNames,
         extendedProps: e
       };

@@ -48,6 +48,25 @@ function requireAdmin(req, res, next) {
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Very small in-memory rate limit for the public submission form: resets on
+// restart and isn't shared across processes, which is fine at this scale —
+// its only job is to slow down casual spam, not stop a determined attacker.
+const submissionTimestampsByIp = new Map();
+const SUBMIT_WINDOW_MS = 60 * 60 * 1000;
+const SUBMIT_MAX_PER_WINDOW = 5;
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const timestamps = (submissionTimestampsByIp.get(ip) || []).filter((t) => now - t < SUBMIT_WINDOW_MS);
+  timestamps.push(now);
+  submissionTimestampsByIp.set(ip, timestamps);
+  return timestamps.length > SUBMIT_MAX_PER_WINDOW;
+}
+
+function clean(value, maxLen) {
+  return String(value || '').trim().slice(0, maxLen);
+}
+
 // ---------- Public API ----------
 
 app.get('/api/clubs', async (req, res, next) => {
@@ -95,6 +114,66 @@ app.get('/api/events/:id', async (req, res, next) => {
     const event = events.find((e) => e.id === req.params.id);
     if (!event) return res.status(404).json({ error: 'Event not found' });
     res.json(event);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post('/api/submit-event', async (req, res, next) => {
+  try {
+    const body = req.body || {};
+
+    // Honeypot: a real visitor never fills this hidden field; a bot usually does.
+    // Pretend to succeed so the bot doesn't learn to avoid it.
+    if (clean(body.website, 200)) {
+      return res.json({ ok: true });
+    }
+
+    if (isRateLimited(req.ip)) {
+      return res.status(429).json({ error: 'Too many submissions from this connection. Try again later.' });
+    }
+
+    const title = clean(body.title, 150);
+    const date = clean(body.date, 20);
+    const category = clean(body.category, 40) || 'Technical';
+    const scope = body.scope === 'inter-college' ? 'inter-college' : 'campus';
+    const clubName = clean(body.clubName, 100);
+    const hostCollege = clean(body.hostCollege, 150);
+
+    if (!title || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return res.status(400).json({ error: 'Event title and a valid date are required.' });
+    }
+    if (scope === 'campus' && !clubName) {
+      return res.status(400).json({ error: 'Club name is required for a campus event.' });
+    }
+    if (scope === 'inter-college' && !hostCollege) {
+      return res.status(400).json({ error: 'Host college name is required for an inter-college event.' });
+    }
+
+    const submission = {
+      id: `pending-web-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      sourceId: `web-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      clubName,
+      title,
+      description: clean(body.description, 1000),
+      date,
+      dateConfirmed: body.dateConfirmed !== false,
+      startTime: clean(body.startTime, 5),
+      endTime: clean(body.endTime, 5),
+      location: clean(body.location, 150),
+      category,
+      scope,
+      hostCollege,
+      submittedBy: clean(body.submittedBy, 100),
+      submittedByEmail: clean(body.submittedByEmail, 150),
+      receivedAt: new Date().toISOString()
+    };
+
+    const pending = await readJson(PENDING_PATH);
+    pending.push(submission);
+    await writeJson(PENDING_PATH, pending);
+
+    res.json({ ok: true });
   } catch (err) {
     next(err);
   }

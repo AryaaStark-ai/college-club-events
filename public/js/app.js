@@ -1,22 +1,18 @@
 const CATEGORY_LIST = ['Technical', 'Cultural', 'Sports', 'Arts'];
 
-// Paste your published Google Form link here once you've created it
-// (see README.md "Letting club leads submit events"). Leave blank to hide
-// the "Submit an event" button site-wide.
-const SUBMIT_FORM_URL = '';
+// One consistent color per category, used on club badges, event date tiles,
+// and the calendar. Inter-college events always override to the purple below.
+const CATEGORY_COLORS = {
+  Technical: '#a31621',
+  Cultural: '#c9962b',
+  Sports: '#1f7a4d',
+  Arts: '#0e7c86'
+};
+const INTERCOLLEGE_COLOR = '#6b21a8';
 
-function wireSubmitEventLinks() {
-  document.querySelectorAll('[data-submit-event-link]').forEach((el) => {
-    if (SUBMIT_FORM_URL) {
-      el.href = SUBMIT_FORM_URL;
-      el.target = '_blank';
-      el.rel = 'noopener';
-    } else {
-      el.style.display = 'none';
-    }
-  });
+function categoryColor(category) {
+  return CATEGORY_COLORS[category] || 'var(--primary)';
 }
-document.addEventListener('DOMContentLoaded', wireSubmitEventLinks);
 
 async function fetchJson(url) {
   const res = await fetch(url);
@@ -41,8 +37,8 @@ function formatTime(t) {
 
 function clubCardHtml(club) {
   return `
-    <a class="card" href="club.html?id=${encodeURIComponent(club.id)}" style="text-decoration:none;">
-      <span class="badge">${club.category}</span>
+    <a class="card" href="club.html?id=${encodeURIComponent(club.id)}" style="text-decoration:none; border-top-color: ${categoryColor(club.category)};">
+      <span class="badge" style="background: ${categoryColor(club.category)};">${club.category}</span>
       <h3>${club.name}</h3>
       <p class="tagline">${club.tagline || ''}</p>
       <span class="meta">${club.meetingTime || ''}</span>
@@ -56,18 +52,20 @@ function eventItemHtml(event, club) {
   const organizerName = isInterCollege
     ? (event.hostCollege || event.clubName || 'Partner college')
     : (club ? club.name : event.clubName || '');
+  const dotColor = isInterCollege ? INTERCOLLEGE_COLOR : categoryColor(event.category);
 
   const badges = [];
+  badges.push(`<span class="badge" style="background:${dotColor};">${event.category}</span>`);
   if (isTentative) badges.push('<span class="badge badge-tentative">Date tentative</span>');
   if (isInterCollege) badges.push('<span class="badge badge-intercollege">🎓 Inter-college</span>');
 
   return `
     <div class="event-item${isInterCollege ? ' intercollege' : ''}">
-      <div class="event-date${isTentative ? ' tentative' : ''}"><span class="day">${isTentative ? '~' : day}</span><span class="month">${month}</span></div>
+      <div class="event-date${isTentative ? ' tentative' : ''}" style="--category-color: ${dotColor};"><span class="day">${isTentative ? '~' : day}</span><span class="month">${month}</span></div>
       <div class="event-body">
         <h3>${event.title}</h3>
         <p>${organizerName}${event.startTime ? ' &middot; ' + formatTime(event.startTime) + (event.endTime ? ' - ' + formatTime(event.endTime) : '') : ''}${event.location ? ' &middot; ' + event.location : ''}</p>
-        ${badges.length ? `<div class="badge-row">${badges.join('')}</div>` : ''}
+        <div class="badge-row">${badges.join('')}</div>
         <p>${event.description || ''}</p>
       </div>
     </div>`;
@@ -155,8 +153,8 @@ async function loadClubDetail() {
     const club = await fetchJson(`/api/clubs/${encodeURIComponent(id)}`);
     document.title = `${club.name} — College Club Hub`;
     detailEl.innerHTML = `
-      <div class="club-detail">
-        <span class="badge">${club.category}</span>
+      <div class="club-detail" style="--category-color: ${categoryColor(club.category)};">
+        <span class="badge" style="background: ${categoryColor(club.category)};">${club.category}</span>
         <h1>${club.name}</h1>
         <p class="tagline">${club.tagline || ''}</p>
         <p>${club.description || ''}</p>

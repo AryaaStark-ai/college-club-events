@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Aayush Dhole">
+<meta name="description" content="Submit your club's event to College Club Hub.">
+<title>Submit an Event — College Club Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script src="js/theme.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <div class="nav-wrap">
+    <a class="brand" href="index.html">
+      <span class="college-logo"><img src="img/dpu-logo.png" alt="DPGU School of Technology and Research"></span>
+      <span class="brand-divider"></span>
+      <span class="brand-text">College Club Hub</span>
+    </a>
+    <nav class="main-nav">
+      <a href="index.html">Home</a>
+      <a href="clubs.html">Clubs</a>
+      <a href="calendar.html">Calendar</a>
+      <a href="submit.html" class="active nav-cta">Submit Event</a>
+      <button id="theme-toggle" title="Toggle theme" aria-label="Toggle dark mode">🌙</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="section-title">
+    <h2>Submit an event</h2>
+  </div>
+  <p class="form-note">Are you a club lead (from this campus or another college)? Fill this out and it'll be reviewed before it goes live on the calendar — usually within a day or two.</p>
+
+  <form class="form-card" id="submit-form">
+    <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off">
+
+    <div class="form-row">
+      <label>This event is organized by</label>
+      <div class="form-row-inline">
+        <label class="checkbox-row"><input type="radio" name="scope" value="campus" checked> A club on this campus</label>
+        <label class="checkbox-row"><input type="radio" name="scope" value="inter-college"> A club from another college</label>
+      </div>
+    </div>
+
+    <div class="form-row" id="club-name-row">
+      <label for="clubName">Club name *</label>
+      <input type="text" id="clubName" name="clubName" list="known-clubs" placeholder="e.g. Coding Club" required>
+      <datalist id="known-clubs"></datalist>
+    </div>
+
+    <div class="form-row" id="host-college-row" style="display:none;">
+      <label for="hostCollege">Host college name *</label>
+      <input type="text" id="hostCollege" name="hostCollege" placeholder="e.g. Pune Institute of Computer Technology">
+    </div>
+
+    <div class="form-row">
+      <label for="title">Event title *</label>
+      <input type="text" id="title" name="title" required>
+    </div>
+
+    <div class="form-row">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" placeholder="What's happening, who should come..."></textarea>
+    </div>
+
+    <div class="form-row-inline">
+      <div class="form-row">
+        <label for="date">Event date *</label>
+        <input type="date" id="date" name="date" required>
+      </div>
+      <div class="form-row">
+        <label for="category">Category *</label>
+        <select id="category" name="category" required>
+          <option value="Technical">Technical</option>
+          <option value="Cultural">Cultural</option>
+          <option value="Sports">Sports</option>
+          <option value="Arts">Arts</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row checkbox-row">
+      <input type="checkbox" id="dateNotConfirmed" name="dateNotConfirmed">
+      <label for="dateNotConfirmed">Date isn't locked in yet (approximate) <span class="hint">— shows a "tentative" badge instead of a fixed date</span></label>
+    </div>
+
+    <div class="form-row-inline">
+      <div class="form-row">
+        <label for="startTime">Start time</label>
+        <input type="time" id="startTime" name="startTime">
+      </div>
+      <div class="form-row">
+        <label for="endTime">End time</label>
+        <input type="time" id="endTime" name="endTime">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label for="location">Location</label>
+      <input type="text" id="location" name="location" placeholder="e.g. Main Auditorium">
+    </div>
+
+    <div class="form-row-inline">
+      <div class="form-row">
+        <label for="submittedBy">Your name *</label>
+        <input type="text" id="submittedBy" name="submittedBy" required>
+      </div>
+      <div class="form-row">
+        <label for="submittedByEmail">Your email *</label>
+        <input type="email" id="submittedByEmail" name="submittedByEmail" required>
+      </div>
+    </div>
+
+    <button type="submit" class="btn" id="submit-btn">Submit for review</button>
+    <p id="form-status" class="meta" style="margin-top: 12px;"></p>
+  </form>
+</main>
+
+<footer>
+  <div class="footer-main">Built by students, for students.</div>
+  <div class="footer-links"><a href="submit.html">Submit an event</a> &middot; <a href="admin.html" class="admin-link">Admin</a></div>
+  <div class="credit">Designed &amp; built by <strong>Aayush Dhole</strong> &middot; &copy; 2026 &middot; All rights reserved</div>
+</footer>
+
+<script src="js/app.js"></script>
+<script src="js/submit.js"></script>
+</body>
+</html>
