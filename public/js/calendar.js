@@ -64,12 +64,68 @@ function wireSubscribeLinks() {
   }
 }
 
+function wireEventModal() {
+  const overlay = document.getElementById('event-modal-overlay');
+  const card = document.getElementById('event-modal-card');
+  const closeBtn = document.getElementById('event-modal-close');
+  const body = document.getElementById('event-modal-body');
+  if (!overlay) return null;
+
+  function close() {
+    overlay.hidden = true;
+  }
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) close();
+  });
+  closeBtn.addEventListener('click', close);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !overlay.hidden) close();
+  });
+
+  function open(event, club) {
+    const isTentative = event.dateConfirmed === false;
+    const isInterCollege = event.scope === 'inter-college';
+    const organizerName = isInterCollege
+      ? (event.hostCollege || event.clubName || 'Partner college')
+      : (club ? club.name : event.clubName || '');
+    const dotColor = isInterCollege ? INTERCOLLEGE_COLOR : categoryColor(event.category);
+
+    const badges = [`<span class="badge" style="background:${dotColor};">${event.category}</span>`];
+    if (isTentative) badges.push('<span class="badge badge-tentative">Date tentative</span>');
+    if (isInterCollege) badges.push('<span class="badge badge-intercollege">🎓 Inter-college</span>');
+
+    const { day, month } = formatDate(event.date);
+    const dateLine = `${month} ${day}, ${event.date.slice(0, 4)}${isTentative ? ' (tentative)' : ''}`;
+    const timeLine = event.startTime
+      ? formatTime(event.startTime) + (event.endTime && event.endTime !== event.startTime ? ' – ' + formatTime(event.endTime) : '')
+      : '';
+
+    card.style.setProperty('--category-color', dotColor);
+    body.innerHTML = `
+      <div class="badge-row">${badges.join('')}</div>
+      <h3 id="event-modal-title">${event.title}</h3>
+      <p class="meta-line">
+        ${organizerName ? organizerName + '<br>' : ''}
+        ${dateLine}${timeLine ? ' &middot; ' + timeLine : ''}
+        ${event.location ? '<br>' + event.location : ''}
+      </p>
+      ${event.description ? `<p class="description">${event.description}</p>` : ''}
+      <a class="add-to-gcal" href="${googleCalendarUrl(event, organizerName)}" target="_blank" rel="noopener">📅 Add to Google Calendar</a>
+    `;
+    overlay.hidden = false;
+  }
+
+  return { open, close };
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   const [events, clubs] = await Promise.all([fetchJson('/api/events'), fetchJson('/api/clubs')]);
   const clubById = Object.fromEntries(clubs.map((c) => [c.id, c]));
 
   renderLegend();
   wireSubscribeLinks();
+  const eventModal = wireEventModal();
 
   let activeCategory = '';
   let activeScope = '';
@@ -111,14 +167,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     eventClick(info) {
       const e = info.event.extendedProps;
       const club = clubById[e.clubId];
-      const organizer = e.scope === 'inter-college' ? (e.hostCollege || 'Partner college') : (club ? club.name : '');
-      alert(
-        `${e.title}\n` +
-        `${organizer}\n` +
-        `${e.date}${e.dateConfirmed === false ? ' (date not yet confirmed)' : ''} ${e.startTime ? formatTime(e.startTime) : ''}\n` +
-        `${e.location || ''}\n\n` +
-        `${e.description || ''}`
-      );
+      if (eventModal) eventModal.open(e, club);
     }
   });
   calendar.render();

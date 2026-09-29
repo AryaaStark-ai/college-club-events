@@ -77,9 +77,14 @@ header.site-header {
 }
 
 .nav-wrap {
-  max-width: 1180px;
+  /* Wider than main's content column on purpose — a header bar reading as
+     "small and centered" with the logo far from the real edge is the classic
+     tell of an under-widened layout on a large monitor. Nav content should
+     sit close to the actual screen edges; only the body text column below
+     stays narrower for readability. */
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 12px 20px;
+  padding: 12px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -182,9 +187,9 @@ nav.main-nav a.nav-cta::after { display: none; }
 
 /* ---------- Layout ---------- */
 main {
-  max-width: 1180px;
+  max-width: 1320px;
   margin: 0 auto;
-  padding: 32px 20px 64px;
+  padding: 32px 24px 64px;
 }
 
 .hero {
@@ -531,6 +536,71 @@ footer .admin-link {
   font-size: 0.76rem;
 }
 footer .admin-link:hover { opacity: 1; }
+
+/* ---------- Event detail modal ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 14, 12, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+.modal-overlay[hidden] { display: none; }
+
+.modal-card {
+  position: relative;
+  background: var(--surface);
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+  padding: 28px;
+  max-width: 460px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  border-top: 5px solid var(--category-color, var(--primary));
+  animation: modal-in 0.16s ease-out;
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-close:hover { color: var(--primary); border-color: var(--primary); }
+
+.modal-body h3 {
+  margin: 6px 0 10px;
+  padding-right: 30px;
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+.modal-body .meta-line {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0 0 10px;
+  line-height: 1.6;
+}
+.modal-body p.description { margin: 10px 0 16px; }
+.modal-body .badge-row { margin-bottom: 10px; }
 
 /* ---------- Subscribe popover ---------- */
 .subscribe-menu {
